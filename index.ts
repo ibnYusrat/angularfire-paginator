@@ -17,7 +17,7 @@ export interface PaginatorFilter {
     val: any;
 }
 
-export class FirebasePaginator <T>{
+export class AngularFirePaginator <T>{
     private readonly path: string;
     private pageSize: number;
     private sort: PaginatorSort[] | null;
