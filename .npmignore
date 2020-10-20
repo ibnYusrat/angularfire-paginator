@@ -1,0 +1,9 @@
+.git/
+.gitignore
+.idea/
+docs/
+node_modules/
+*.tar
+*.tgz
+.npmignore
+index.ts
