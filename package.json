@@ -1,6 +1,6 @@
 {
   "name": "angularfire-paginator",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A simple TypeScript class to paginate Firebase collections using @angular/fire.",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "fire",
     "@angular/fire"
   ],
-  "author": "Muhammad bin Yusrat",
+  "author": "Muhammad bin Yusrat <info@muhammadbinyusrat.com> (https://www.muhammadbinyusrat.com)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ibnyusrat/angularfire-paginator/issues"

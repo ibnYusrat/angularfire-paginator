@@ -1,3 +1,5 @@
+// This code comes with ABSOLUTELY NO WARRANTY.
+
 import {AngularFirestore, Query, QueryDocumentSnapshot} from "@angular/fire/firestore";
 import {BehaviorSubject, Observable} from "rxjs";
 import {map, switchMap, tap, filter} from "rxjs/operators";
@@ -31,10 +33,10 @@ export class AngularFirePaginator <T>{
     private prevAnchor: QueryDocumentSnapshot<any>; // anchor for querying previous page
     private nextAnchor: QueryDocumentSnapshot<any>; // anchor for querying next page
 
-    enableFirst: boolean = false;
-    enableLast: boolean = false;
-    enableNext: boolean = false;
-    enablePrev: boolean = false;
+    firstEnabled: boolean = false;
+    lastEnabled: boolean = false;
+    nextEnabled: boolean = false;
+    previousEnabled: boolean = false;
 
     /**
      * AngularFire-based Paginator.
@@ -61,7 +63,7 @@ export class AngularFirePaginator <T>{
             tap((action) => {
                 this.trace("start ------------------------ ");
                 // disable all navigation buttons during query
-                this.enableFirst = this.enablePrev = this.enableNext = this.enableLast = false;
+                this.firstEnabled = this.previousEnabled = this.nextEnabled = this.lastEnabled = false;
                 this.trace('page size ', this.pageSize, this.path, action);
             }),
             filter(() => {
@@ -114,21 +116,21 @@ export class AngularFirePaginator <T>{
                                         // e.g. only first 2 items returned because previous was called from item 3 with a page size of 4.
                                         // This  can happen when the user uses prev all the way from the end of the list to the start.
                                         // Forcefully refresh the page to first.
-                                        this.enableNext = this.enableLast = true;
+                                        this.nextEnabled = this.lastEnabled = true;
                                         if (items.length < ps + 1) {
                                             this.paginate('reset');
-                                            this.trace('enablePrev:', this.enablePrev, 'items.length', items.length, 'ps', ps, pagingAction);
+                                            this.trace('enablePrev:', this.previousEnabled, 'items.length', items.length, 'ps', ps, pagingAction);
                                         }
                                         break;
                                     case 'next':
                                         if (items.length < this.pageSize + 1) {
                                             // but only if we are not already on the first page
                                             if (items[0].payload.doc.id !== this.firstItemId) {
-                                                this.enableFirst = this.enablePrev = true;
+                                                this.firstEnabled = this.previousEnabled = true;
                                                 this.paginate('last');
                                             }
                                         }
-                                        this.trace('enableNext:', this.enableNext, 'items.length', items.length, 'ps', ps, pagingAction);
+                                        this.trace('enableNext:', this.nextEnabled, 'items.length', items.length, 'ps', ps, pagingAction);
                                         break;
                                     case 'last':
                                         break;
@@ -136,12 +138,12 @@ export class AngularFirePaginator <T>{
 
                                 // Check if we have a next page by the number of items.
                                 // If we have pagination-size + 1 results, then the next page exists.
-                                this.enableLast = this.enableNext = items.length == ps + 1;
+                                this.lastEnabled = this.nextEnabled = items.length == ps + 1;
 
                                 // enablePrev if we are not at the very first element
                                 // enableFirst is just for convenience. Actually we could do with enablePrev
                                 // Todo: what happens if the first element (firstItemId) changes somewhere in between?
-                                this.enableFirst = this.enablePrev = items[0].payload.doc.id !== this.firstItemId;
+                                this.firstEnabled = this.previousEnabled = items[0].payload.doc.id !== this.firstItemId;
 
                                 // remember the anchors for moving to previous and next pages
                                 this.prevAnchor = items[1]?.payload.doc; // item[1] because we have to use endBefore for previous and have to query one item extra
@@ -325,6 +327,26 @@ export class AngularFirePaginator <T>{
      */
     public stall() {
         this.setLoadingAndRefresh(true);
+    }
+
+    public first() {
+        this.paginate("first");
+    }
+
+    public last() {
+        this.paginate("last")
+    }
+
+    public next() {
+        this.paginate("next")
+    }
+
+    public previous() {
+        this.paginate("prev");
+    }
+
+    public prev() {
+        this.previous();
     }
 
     private setLoadingAndRefresh(loading: boolean) {
