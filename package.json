@@ -1,6 +1,6 @@
 {
   "name": "angularfire-paginator",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A simple TypeScript class to paginate Firebase collections using @angular/fire.",
   "main": "index.js",
   "scripts": {
@@ -26,9 +26,9 @@
   },
   "homepage": "https://github.com/ibnyusrat/angularfire-paginator#readme",
   "dependencies": {
-    "@angular/core": "^10.1.6",
-    "@angular/fire": "^6.0.3",
-    "firebase": "^7.24.0",
-    "rxjs": "^6.6.3"
+    "@angular/core": "^9.1.12",
+    "@angular/fire": "^5.4.2",
+    "firebase": "^7.22.1",
+    "rxjs": "^6.5.5"
   }
 }

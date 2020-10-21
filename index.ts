@@ -22,7 +22,7 @@ export class AngularFirePaginator <T>{
     private pageSize: number;
     private sort: PaginatorSort[] | null;
     private filter: PaginatorFilter[] | null;
-    private loading = false;
+    private stalled = false;
     private debug = false;
 
     items$: Observable<T[]>;
@@ -42,18 +42,18 @@ export class AngularFirePaginator <T>{
      * @param fs AngularFire service instance
      * @param path Firebase collection data path
      * @param pageSize Elements per page
-     * @param mySort Array of sorting criteria
-     * @param myFilter Array of filter criteria
-     * @param loading Sets loading flag. Required when you have to wait for other data to complete before displaying stuff. The paginator will query after setLoading(false)
+     * @param sortOptions Array of sorting criteria
+     * @param filterOptions Array of filter criteria
+     * @param stalled Sets stalled flag. Useful when you have to wait for other data to load before displaying paginator. The paginator will query after resume() is called.
      * @param debug Turns console logs on or off.
      */
 
-    constructor(private fs: AngularFirestore, path: string, pageSize: number, mySort?: PaginatorSort[] | null, myFilter?: PaginatorFilter[] | null, loading?: boolean, debug ?: boolean) {
+    constructor(private fs: AngularFirestore, path: string, pageSize: number, sortOptions?: PaginatorSort[] | null, filterOptions?: PaginatorFilter[] | null, stalled?: boolean, debug ?: boolean) {
         this.pageSize = pageSize;
         this.path = path;
-        this.sort = mySort;
-        this.filter = myFilter;
-        this.loading = (loading === undefined) ? false : loading;
+        this.sort = sortOptions;
+        this.filter = filterOptions;
+        this.stalled = (stalled === undefined) ? false : stalled;
 
         this.paging$ = new BehaviorSubject('first');
 
@@ -62,10 +62,10 @@ export class AngularFirePaginator <T>{
                 this.trace("start ------------------------ ");
                 // disable all navigation buttons during query
                 this.enableFirst = this.enablePrev = this.enableNext = this.enableLast = false;
-                this.debug && console.log('page size ', this.pageSize, this.path, action);
+                this.trace('page size ', this.pageSize, this.path, action);
             }),
             filter(() => {
-                return this.loading === false;
+                return this.stalled === false;
             }),
             switchMap((pagingAction) =>
                 this.fs.collection<any>(this.path, ref => {
@@ -146,7 +146,7 @@ export class AngularFirePaginator <T>{
                                 // remember the anchors for moving to previous and next pages
                                 this.prevAnchor = items[1]?.payload.doc; // item[1] because we have to use endBefore for previous and have to query one item extra
                                 this.nextAnchor = items.slice(-1)[0].payload.doc; // last item because we have to use startAt for next and queried one item extra only for this purpose
-                                // console.log('Anchor for prev', JSON.stringify(this.currentPrevAnchor.data()), "Anchor for next", JSON.stringify(this.currentNextAnchor.data()));
+                                // this.trace('Anchor for prev', JSON.stringify(this.currentPrevAnchor.data()), "Anchor for next", JSON.stringify(this.currentNextAnchor.data()));
 
                             } else {
                                 // no items were found for the new page, reset to first. But only if we did not just move to first anyway.
@@ -312,19 +312,30 @@ export class AngularFirePaginator <T>{
     }
 
     /**
-     * call to switch loading mode on/off
-     * can also be used to reload the current page if joined data was updated by simply calling setLoading(false) again.
-     * @param loading
+     * call to resume loading documents in paginator.
+     * can also be used to reload the current page if joined data was updated by simply calling resume() again.
      */
-    public setLoadingAndRefresh(loading: boolean) {
-        if (this.loading) {
-            this.debug && console.log("loading set to ", loading);
-            this.loading = loading;
+
+    public resume() {
+        this.setLoadingAndRefresh(false);
+    }
+
+    /**
+     * call to stall loading documents in paginator.
+     */
+    public stall() {
+        this.setLoadingAndRefresh(true);
+    }
+
+    private setLoadingAndRefresh(loading: boolean) {
+        if (this.stalled) {
+            this.trace("loading set to ", loading);
+            this.stalled = loading;
             if (!loading) {
                 this.paginate('reset');
             }
         } else {
-            this.loading = loading;
+            this.stalled = loading;
             if (!loading) {
                 this.paginate('current');
             }
