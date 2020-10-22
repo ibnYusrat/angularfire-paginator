@@ -10,13 +10,14 @@ npm install angularfire-paginator
 ```ts
 import {AngularFirePaginator} from 'angularfire-paginator'; // inside component (not module)
 
+// inside your component's class:
 paginator: AngularFirePaginator<any>;
 
-// inside onNgInit()
+// inside onNgInit():
 this.paginator = new AngularFirePaginator(this.angularFirestore, '/path/to/collection', 5);
 
 // insde your template:
-<span *ngFor="let item of paginator.items$">{{item.someProperty}}</span>
+<span *ngFor="let item of paginator.items$ | async">{{item.someProperty}}</span>
 ```
 
 ## Installation
@@ -47,6 +48,11 @@ Inside your `onNgInit()` function, initialize the paginator:
 this.paginator = new AngularFirePaginator(this.angularFirestore, '/path/to/collection/', 5);
 ```
 First argument is your instance of `AngularFirestore` Service. Then the path to the collection that you'd like to paginate, and then number of items per page.
+
+Next, in your template, simply loop over the observable to print items on the current page:
+```html
+<span *ngFor="let item of paginator.items$ | async">{{item.someProperty}}</span>
+```
 
 ## Navigation between pages
 To navigate back and forth, you can call these functions of this class:
